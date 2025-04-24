@@ -1,0 +1,58 @@
+schemaVersion: 2.2.0
+metadata:
+  name: driver-detection-app
+  version: 1.0.0
+  displayName: Driver Detection AI
+  description: AI-based driver alertness detection using OpenCV
+
+components:
+  - name: python-runtime
+    container:
+      image: python:3.10
+      memoryLimit: 2Gi
+      mountSources: true
+      command: ['sleep', 'infinity']
+      env:
+        - name: PIP_NO_CACHE_DIR
+          value: 'off'
+      volumeMounts:
+        - name: pip-cache
+          path: /home/python/.cache/pip
+
+  - name: pip-cache
+    volume:
+      size: 1Gi
+
+  - name: devtools
+    container:
+      image: quay.io/nikesh_sar/driver-detection
+      memoryLimit: 512Mi
+      mountSources: true
+      command: ['sleep', 'infinity']
+
+commands:
+  - id: install-deps
+    exec:
+      label: "Install Python Dependencies"
+      component: python-runtime
+      workingDir: ${PROJECT_SOURCE_DIR}
+      commandLine: "pip install -r requirements.txt"
+
+  - id: run-app
+    exec:
+      label: "Run Driver Detection App"
+      component: python-runtime
+      workingDir: ${PROJECT_SOURCE_DIR}
+      commandLine: "python app.py"
+
+  - id: test
+    exec:
+      label: "Run Tests"
+      component: python-runtime
+      workingDir: ${PROJECT_SOURCE_DIR}
+      commandLine: "pytest"
+
+events:
+  postStart:
+    - install-deps
+
